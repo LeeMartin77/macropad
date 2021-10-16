@@ -14,14 +14,26 @@ led.value = True
 
 kbd = Keyboard(usb_hid.devices)
 
-apin = digitalio.DigitalInOut(board.GP1)
-apin.direction = digitalio.Direction.INPUT
-apin.pull = digitalio.Pull.DOWN
+pin_key_array = [
+    (digitalio.DigitalInOut(board.GP1), Keycode.ONE),
+    (digitalio.DigitalInOut(board.GP2), Keycode.TWO),
+    (digitalio.DigitalInOut(board.GP3), Keycode.THREE),
+    (digitalio.DigitalInOut(board.GP4), Keycode.FOUR),
+    (digitalio.DigitalInOut(board.GP5), Keycode.FIVE),
+    (digitalio.DigitalInOut(board.GP6), Keycode.SIX),
+    (digitalio.DigitalInOut(board.GP7), Keycode.SEVEN),
+    (digitalio.DigitalInOut(board.GP8), Keycode.EIGHT),
+    (digitalio.DigitalInOut(board.GP9), Keycode.NINE)
+]
+
+for pin_key in pin_key_array:
+    pin_key[0].direction = digitalio.Direction.INPUT
+    pin_key[0].pull = digitalio.Pull.DOWN
 
 while True:
-    if apin.value:
-        led.value = not led.value
-        kbd.press(Keycode.A)
+    for pin_key in pin_key_array:
+        if pin_key[0].value:
+            kbd.press(pin_key[1])
     time.sleep(0.1)
     kbd.release_all()
 
