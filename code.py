@@ -3,8 +3,8 @@ import board
 import digitalio
 import usb_hid
 
-from adafruit_hid.keyboard import Keyboard
-from adafruit_hid.keycode import Keycode
+# from adafruit_hid.keyboard import Keyboard
+# from adafruit_hid.keycode import Keycode
 from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 
@@ -12,28 +12,40 @@ led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 led.value = True
 
-kbd = Keyboard(usb_hid.devices)
+# kbd = Keyboard(usb_hid.devices)
+control = ConsumerControl(usb_hid.devices)
 
-pin_key_array = [
-    (digitalio.DigitalInOut(board.GP1), Keycode.ONE),
-    (digitalio.DigitalInOut(board.GP2), Keycode.TWO),
-    (digitalio.DigitalInOut(board.GP3), Keycode.THREE),
-    (digitalio.DigitalInOut(board.GP4), Keycode.FOUR),
-    (digitalio.DigitalInOut(board.GP5), Keycode.FIVE),
-    (digitalio.DigitalInOut(board.GP6), Keycode.SIX),
-    (digitalio.DigitalInOut(board.GP7), Keycode.SEVEN),
-    (digitalio.DigitalInOut(board.GP8), Keycode.EIGHT),
-    (digitalio.DigitalInOut(board.GP9), Keycode.NINE)
+# Soldered Layout:
+# -------------------
+# | GP1 | GP2 | GP3 |
+# -------------------
+# | GP4 | GP5 | GP6 |
+# -------------------
+# | GP7 | GP8 | GP9 |
+# -------------------
+
+pin_key_single_array = [
+    (digitalio.DigitalInOut(board.GP1), ConsumerControlCode.VOLUME_INCREMENT, False),
+    (digitalio.DigitalInOut(board.GP2), ConsumerControlCode.SCAN_PREVIOUS_TRACK, True),
+    (digitalio.DigitalInOut(board.GP3), ConsumerControlCode.SCAN_NEXT_TRACK, True),
+    (digitalio.DigitalInOut(board.GP4), ConsumerControlCode.VOLUME_DECREMENT, False),
+    (digitalio.DigitalInOut(board.GP5), ConsumerControlCode.PLAY_PAUSE, True),
+    # (digitalio.DigitalInOut(board.GP6), None),
+    (digitalio.DigitalInOut(board.GP7), ConsumerControlCode.MUTE, True),
+    # (digitalio.DigitalInOut(board.GP8), None),
+    # (digitalio.DigitalInOut(board.GP9), None)
 ]
 
-for pin_key in pin_key_array:
-    pin_key[0].direction = digitalio.Direction.INPUT
-    pin_key[0].pull = digitalio.Pull.DOWN
+for (pin, key, single) in pin_key_single_array:
+    pin.direction = digitalio.Direction.INPUT
+    pin.pull = digitalio.Pull.DOWN
 
 while True:
-    for pin_key in pin_key_array:
-        if pin_key[0].value:
-            kbd.press(pin_key[1])
-    time.sleep(0.1)
-    kbd.release_all()
-
+    for (pin, key, single) in pin_key_single_array:
+        if pin.value:
+            control.press(key)
+            # If it's a single key, wait til the key is released before doing anything else
+            while single and pin.value:
+                pass
+            time.sleep(0.1)
+            control.release()
